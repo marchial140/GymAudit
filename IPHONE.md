@@ -4,7 +4,7 @@ GymAudit dispose maintenant d’un **projet iOS Capacitor**, qui embarque l’in
 
 ## ZIP Xcode autonome — sans npm
 
-Télécharger [GymAudit-Xcode.zip](https://github.com/marchial140/GymAudit/raw/refs/heads/main/downloads/GymAudit-Xcode.zip), puis décompresser et ouvrir **`GymAudit-Xcode/ios/App/App.xcodeproj`** dans Xcode 26 ou plus récent. Choisir le schéma **App**, un simulateur iPhone, puis **▶**. Pour un iPhone physique, configurer son Team dans Signing & Capabilities.
+Télécharger [GymAudit-iPhone-Xcode.zip](https://github.com/marchial140/GymAudit/raw/refs/heads/main/downloads/GymAudit-iPhone-Xcode.zip), puis décompresser et ouvrir **`GymAudit/GymAudit.xcodeproj`** dans Xcode 26 ou plus récent. Choisir le schéma **GymAudit**, un simulateur iPhone, puis **▶**. Pour un iPhone physique, configurer son Team dans Signing & Capabilities.
 
 Cette archive inclut l’interface compilée, les configurations générées, les trois plugins et les frameworks Capacitor/Cordova 8.6.0 dont les sommes SHA-256 ont été vérifiées. Ses dépendances Swift sont locales : aucune installation npm ni résolution de dépendances distantes n’est nécessaire. Xcode, le SDK iOS et les simulateurs doivent être installés sur le Mac. La compilation native reste à vérifier sur macOS ; le ZIP n’est pas un IPA signé.
 

@@ -14,10 +14,16 @@ CHECKSUMS = {
 assert len(sys.argv) == 3, 'Fournir les archives officielles Capacitor et Cordova 8.6.0.'
 assert json.loads((ROOT/'node_modules/@capacitor/core/package.json').read_text())['version'] == '8.6.0'
 with tempfile.TemporaryDirectory(prefix='gymaudit-xcode-') as tmp:
-    target = Path(tmp)/'GymAudit-Xcode'
-    shutil.copytree(ROOT/'ios/App', target/'ios/App', ignore=shutil.ignore_patterns('xcuserdata', 'build', 'DerivedData', '.build', '.swiftpm', '.DS_Store'))
-    shutil.copy2(ROOT/'ios/debug.xcconfig', target/'ios/debug.xcconfig')
-    packages = target/'ios/NativePackages'
+    target = Path(tmp)/'GymAudit'
+    shutil.copytree(ROOT/'ios/App', target, ignore=shutil.ignore_patterns('xcuserdata', 'build', 'DerivedData', '.build', '.swiftpm', '.DS_Store'))
+    shutil.copy2(ROOT/'ios/debug.xcconfig', target/'debug.xcconfig')
+    (target/'App.xcodeproj').rename(target/'GymAudit.xcodeproj')
+    project = target/'GymAudit.xcodeproj/project.pbxproj'
+    project.write_text(project.read_text().replace('path = ../debug.xcconfig;', 'path = debug.xcconfig;'))
+    schemes = target/'GymAudit.xcodeproj/xcshareddata/xcschemes'
+    schemes.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(ROOT/'scripts/GymAudit.xcscheme', schemes/'GymAudit.xcscheme')
+    packages = target/'NativePackages'
     runtime = packages/'capacitor-swift-pm'
     runtime.mkdir(parents=True)
     for (name, expected), archive in zip(CHECKSUMS.items(), sys.argv[1:]):
@@ -46,8 +52,8 @@ let package = Package(name: "capacitor-swift-pm", products: [
     license_file = ROOT/'node_modules/@capacitor/core/LICENSE'
     assert license_file.is_file()
     shutil.copy2(license_file, runtime/'LICENSE')
-    wrapper = target/'ios/App/CapApp-SPM/Package.swift'
-    text = wrapper.read_text().replace('.package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", exact: "8.6.0")', '.package(name: "capacitor-swift-pm", path: "../../NativePackages/capacitor-swift-pm")')
+    wrapper = target/'CapApp-SPM/Package.swift'
+    text = wrapper.read_text().replace('.package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", exact: "8.6.0")', '.package(name: "capacitor-swift-pm", path: "../NativePackages/capacitor-swift-pm")')
     versions = {}
     for plugin in ['clipboard', 'share', 'status-bar']:
         source = ROOT/'node_modules/@capacitor'/plugin
@@ -58,22 +64,22 @@ let package = Package(name: "capacitor-swift-pm", products: [
         shutil.copytree(source/'ios', destination/'ios')
         manifest = destination/'Package.swift'
         manifest.write_text(re.sub(r'\.package\(url: "https://github.com/ionic-team/capacitor-swift-pm.git", from: "[^"]+"\)', '.package(name: "capacitor-swift-pm", path: "../capacitor-swift-pm")', manifest.read_text()))
-        text = text.replace(f'../../../node_modules/@capacitor/{plugin}', f'../../NativePackages/{plugin}')
+        text = text.replace(f'../../../node_modules/@capacitor/{plugin}', f'../NativePackages/{plugin}')
         versions[plugin] = json.loads((source/'package.json').read_text())['version']
     wrapper.write_text(text.replace('// DO NOT MODIFY THIS FILE - managed by Capacitor CLI commands', '// Copie autonome pour Xcode, produite par scripts/package-xcode.py'))
     for manifest in target.rglob('Package.swift'):
         assert 'node_modules' not in manifest.read_text() and '.package(url:' not in manifest.read_text()
         for path in re.findall(r'path: "([^"]+)"', manifest.read_text()):
             assert (manifest.parent/path).exists(), f'Chemin manquant : {manifest}: {path}'
-    app = target/'ios/App/App'
+    app = target/'App'
     assert (app/'public/index.html').is_file()
     assert (app/'capacitor.config.json').is_file()
     assert not json.loads((app/'capacitor.config.json').read_text()).get('server')
     assert not list(target.rglob('*.csv')), 'Aucun CSV ne doit être embarqué.'
     (target/'LIRE-MOI.txt').write_text('''GYMAUDIT — PROJET XCODE COMPLET
 
-1. Ouvrir ios/App/App.xcodeproj sur un Mac avec Xcode 26 ou plus récent.
-2. Choisir le schéma App puis un simulateur iPhone, et cliquer sur Run (▶).
+1. Ouvrir GymAudit.xcodeproj sur un Mac avec Xcode 26 ou plus récent.
+2. Choisir le schéma GymAudit puis un simulateur iPhone, et cliquer sur Run (▶).
 3. Pour un iPhone physique : choisir ton Team dans Signing & Capabilities,
    brancher l’iPhone, le sélectionner comme destination, puis Run.
 
@@ -92,7 +98,7 @@ Cette archive contient une copie autonome des dépendances ; pour modifier
 l’interface, utiliser les sources du dépôt GymAudit et régénérer cette archive.
 ''')
     (target/'DEPENDANCES.json').write_text(json.dumps({'capacitor': '8.6.0', 'plugins': versions, 'sha256_archives_officielles': CHECKSUMS}, indent=2)+'\n')
-    output = ROOT/'downloads/GymAudit-Xcode.zip'
+    output = ROOT/'downloads/GymAudit-iPhone-Xcode.zip'
     output.parent.mkdir(exist_ok=True)
     with zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED) as z:
         for path in sorted(target.rglob('*')):
