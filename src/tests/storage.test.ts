@@ -1,0 +1,10 @@
+import 'fake-indexeddb/auto';
+import {it,expect,afterEach} from 'vitest';
+import {db,saveState,readState} from '../storage/db';
+import {parseHevy} from '../imports/hevy';
+import {demoCSV} from '../data/demo';
+import {classify} from '../data/catalog';
+import type {Dataset} from '../domain/types';
+afterEach(async()=>{await db.state.clear();});
+it('persiste et remplace un import dans IndexedDB sans fusion ni doublons',async()=>{const d=parseHevy(demoCSV(),'fictif.csv');await saveState('dataset',d);await saveState('dataset',d);db.close();await db.open();const saved=await readState<Dataset>('dataset');expect(saved?.sets).toHaveLength(216);expect(saved?.workouts).toHaveLength(24);expect(await db.state.count()).toBe(1);});
+it('persiste les classifications et permet de tout effacer',async()=>{const c=classify('Bench Press (Barbell)');await saveState('catalog',{[c.name]:{...c,category:'rehab'}});expect(await readState('catalog')).toEqual({[c.name]:{...c,category:'rehab'}});await db.state.clear();expect(await readState('catalog')).toBeUndefined();});

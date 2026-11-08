@@ -1,0 +1,22 @@
+import {startOfWeek,format,differenceInCalendarDays} from 'date-fns';
+import {muscles,type Dataset,type ExerciseDefinition,type WorkoutSet,type AnalysisPeriod,type Preferences,type MuscleVolume,type ExerciseProgress} from './types';
+export type Catalog=Record<string,ExerciseDefinition>;
+export const toUnit=(lb:number,unit:'lb'|'kg')=>unit==='kg'?lb*0.45359237:lb;
+export function eligible(s:WorkoutSet,c:Catalog){return c[s.exercise]?.classified&&c[s.exercise]?.category==='strength'&&['normal','failure','dropset'].includes(s.type)&&s.reps!==null&&s.reps>0;}
+export function e1rm(s:WorkoutSet,c:Catalog){return eligible(s,c)&&!c[s.exercise]?.bodyweight&&s.weight!==null&&s.weight>0&&s.reps!>=2&&s.reps!<=12?s.weight*(1+s.reps!/30):null;}
+export function select(d:Dataset,p:AnalysisPeriod){const workouts=d.workouts.filter(w=>w.start>=p.start&&w.start<=p.end);const ids=new Set(workouts.map(w=>w.id));return {...d,workouts,sets:d.sets.filter(s=>ids.has(s.workoutId))};}
+export const weeksIn=(p:AnalysisPeriod)=>Math.max(1/7,(differenceInCalendarDays(p.end,p.start)+1)/7);
+export function previous(p:AnalysisPeriod):AnalysisPeriod {const duration=p.end-p.start+1;return {start:p.start-duration,end:p.start-1};}
+export function volume(d:Dataset,c:Catalog,p:Preferences):MuscleVolume[]{
+ const result=muscles.map(m=>({muscle:m,direct:0,indirect:0,equivalent:0,days:0,exercises:[] as string[]}));
+ const dates=new Map(d.workouts.map(w=>[w.id,format(w.start,'yyyy-MM-dd')]));const days=new Map<string,Set<string>>();
+ d.sets.filter(s=>eligible(s,c)).forEach(s=>{const def=c[s.exercise];result.forEach(m=>{const direct=def.primary.includes(m.muscle),indirect=!direct&&def.secondary.includes(m.muscle);if(!direct&&!indirect)return;
+ m.direct+=direct?1:0;m.indirect+=indirect?p.indirect:0;m.equivalent+=(direct?1:p.indirect)*(s.type==='dropset'?p.dropset:1);
+ if(!m.exercises.includes(s.exercise))m.exercises.push(s.exercise);if(!days.has(m.muscle))days.set(m.muscle,new Set());days.get(m.muscle)!.add(dates.get(s.workoutId)!);
+ });});return result.map(m=>({...m,days:days.get(m.muscle)?.size||0}));
+}
+export function weekly(d:Dataset,c:Catalog,p:AnalysisPeriod){const map=new Map<string,{week:string;sessions:number;sets:number}>();let date=startOfWeek(p.start,{weekStartsOn:1});let count=0;while(date.getTime()<=p.end&&count++<2000){const week=format(date,'yyyy-MM-dd');map.set(week,{week,sessions:0,sets:0});date=new Date(date.getFullYear(),date.getMonth(),date.getDate()+7);}
+ const counts=new Map<string,number>();d.sets.forEach(s=>{if(eligible(s,c))counts.set(s.workoutId,(counts.get(s.workoutId)||0)+1);});d.workouts.forEach(w=>{const key=format(startOfWeek(w.start,{weekStartsOn:1}),'yyyy-MM-dd');const row=map.get(key)||{week:key,sessions:0,sets:0};row.sessions++;row.sets+=counts.get(w.id)||0;map.set(key,row);});return [...map.values()].sort((a,b)=>a.week.localeCompare(b.week));}
+export function progress(d:Dataset,c:Catalog,exercise:string,p:Preferences):ExerciseProgress[]{return d.workouts.flatMap(w=>{const sets=d.sets.filter(s=>s.workoutId===w.id&&s.exercise===exercise&&eligible(s,c));if(!sets.length)return [];const loaded=sets.filter(s=>s.weight!==null&&s.weight>0);const best=[...loaded].sort((a,b)=>b.weight!-a.weight!||b.reps!-a.reps!)[0];const estimates=sets.map(s=>e1rm(s,c)).filter((x):x is number=>x!==null);const comparable=loaded.filter(s=>Math.abs(s.reps!-p.repTarget)<=p.tolerance);const atWeight=sets.filter(s=>s.weight===p.referenceWeight);return [{date:w.start,workoutId:w.id,weight:best?.weight||0,reps:best?.reps||Math.max(...sets.map(s=>s.reps!)),e1rm:estimates.length?Math.max(...estimates):null,volume:loaded.reduce((n,s)=>n+s.weight!*s.reps!,0),sets:sets.length,comparable:comparable.length?Math.max(...comparable.map(s=>s.weight!)):null,repsAtWeight:atWeight.length?Math.max(...atWeight.map(s=>s.reps!)):null}];}).sort((a,b)=>a.date-b.date);}
+export function trend(rows:ExerciseProgress[]){const valid=rows.filter(r=>r.comparable!==null);if(valid.length<8)return {label:'Données insuffisantes',change:null};const avg=(r:ExerciseProgress[])=>r.reduce((s,x)=>s+x.comparable!,0)/r.length;const before=avg(valid.slice(-8,-4)),after=avg(valid.slice(-4));const change=before>0?(after-before)/before*100:0;return {label:change>2?'Progression':change< -2?'Diminution':'Stabilité possible',change};}
+export function plateau(rows:ExerciseProgress[]){const r=rows.filter(x=>x.comparable!==null).slice(-4);return r.length===4&&r[0].comparable!>0&&Math.max(...r.slice(1).map(x=>x.comparable!))<=r[0].comparable!*1.02;}
