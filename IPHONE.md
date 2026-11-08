@@ -2,6 +2,14 @@
 
 GymAudit dispose maintenant d’un **projet iOS Capacitor**, qui embarque l’interface React dans une application iPhone/iPad. Le CSV, les calculs et le stockage restent sur l’appareil. Aucun serveur à lancer, aucune connexion Hevy ni clé API. Ce projet est distinct de « Copilot for Xcode ».
 
+## ZIP Xcode autonome — sans npm
+
+Télécharger [GymAudit-Xcode.zip](https://github.com/marchial140/GymAudit/raw/refs/heads/main/downloads/GymAudit-Xcode.zip), puis décompresser et ouvrir **`GymAudit-Xcode/ios/App/App.xcodeproj`** dans Xcode 26 ou plus récent. Choisir le schéma **App**, un simulateur iPhone, puis **▶**. Pour un iPhone physique, configurer son Team dans Signing & Capabilities.
+
+Cette archive inclut l’interface compilée, les configurations générées, les trois plugins et les frameworks Capacitor/Cordova 8.6.0 dont les sommes SHA-256 ont été vérifiées. Ses dépendances Swift sont locales : aucune installation npm ni résolution de dépendances distantes n’est nécessaire. Xcode, le SDK iOS et les simulateurs doivent être installés sur le Mac. La compilation native reste à vérifier sur macOS ; le ZIP n’est pas un IPA signé.
+
+L’archive est générée par `scripts/package-xcode.py` à partir du projet synchronisé et des archives officielles des frameworks 8.6.0. Pour développer à partir des sources du dépôt, utiliser les étapes ci-dessous.
+
 ## Préparer et ouvrir sur ton Mac
 
 Prérequis : **Node.js 24**, **Xcode 26 ou plus récent** et le support des simulateurs iOS installé dans Xcode. L’application cible **iOS 15 ou plus récent**. Xcode et les dépendances Swift doivent être téléchargés avant le premier lancement ; l’application elle-même n’a ensuite pas besoin d’un serveur.

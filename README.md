@@ -1,5 +1,7 @@
 # GymAudit
 
+**Téléchargement Xcode complet, sans npm :** [GymAudit-Xcode.zip](https://github.com/marchial140/GymAudit/raw/refs/heads/main/downloads/GymAudit-Xcode.zip). Décompresser et ouvrir `ios/App/App.xcodeproj` dans Xcode. Le ZIP inclut les fichiers compilés, les plugins et les frameworks Capacitor ; la signature Apple reste à configurer pour un iPhone physique.
+
 **Version iPhone :** le projet Xcode est disponible dans `ios/App/App.xcodeproj`. Voir [le guide iPhone](IPHONE.md) pour le simulateur, la signature et l’installation sur ton appareil.
 
 Application Web en français pour analyser un export Hevy **entièrement dans le navigateur**. React, TypeScript, Vite, Tailwind CSS, Recharts, Lucide, Papa Parse, date-fns, Dexie et Vitest. Aucun backend, compte, service IA ou clé API.
