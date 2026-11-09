@@ -1,0 +1,11 @@
+import 'fake-indexeddb/auto';
+import {it,expect,afterEach} from 'vitest';
+import {db,readState,saveState} from '../storage/db';
+import {normalizeFavorites,setFavorite} from '../storage/favorites';
+import {defaults} from '../domain/types';
+afterEach(async()=>{await db.state.clear();});
+it('normalise les favoris absents ou anciens sans fabriquer une sélection',()=>{expect(normalizeFavorites(undefined)).toEqual([]);expect(normalizeFavorites(['Bench','Bench',null,42,''])).toEqual(['Bench']);});
+it('ajoute une entrée dans le stockage V1 sans toucher aux séances, préférences ou classifications',async()=>{const data={filename:'historique',sets:[{id:1}]},catalog={Bench:{primary:['Pectoraux']}};await saveState('dataset',data);await saveState('catalog',catalog);await saveState('preferences',defaults);await setFavorite('Bench',true);expect(await readState('dataset')).toEqual(data);expect(await readState('catalog')).toEqual(catalog);expect(await readState('preferences')).toEqual(defaults);expect(db.verno).toBe(1);});
+it('persiste les favoris après fermeture et réouverture de la base',async()=>{await setFavorite('Bench',true);db.close();await db.open();expect(await readState('favorites')).toEqual(['Bench']);});
+it('sérialise les modifications concurrentes sans doublons ni favori perdu',async()=>{await Promise.all([setFavorite('Bench',true),setFavorite('Squat',true),setFavorite('Bench',true)]);expect(await readState('favorites')).toEqual(['Bench','Squat']);await setFavorite('Bench',false);expect(await readState('favorites')).toEqual(['Squat']);});
+it('préserve les favoris lors du remplacement du CSV et les efface avec toutes les données',async()=>{await setFavorite('Bench',true);await saveState('dataset',{filename:'nouveau.csv'});expect(await readState('favorites')).toEqual(['Bench']);await db.state.clear();expect(await readState('favorites')).toBeUndefined();expect(await readState('dataset')).toBeUndefined();});

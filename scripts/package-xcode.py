@@ -7,6 +7,7 @@ from pathlib import Path
 import hashlib, json, re, shutil, stat, sys, tempfile, zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
+APP_VERSION = json.loads((ROOT/'package.json').read_text())['version']
 CHECKSUMS = {
     'Capacitor': 'df2b77a471b939ce2d1b954cf11247714154bb5f91fa94901d3547e8fda314ad',
     'Cordova': '150543647078664bd1e852574cec4a65d0a38c9d3c5a8a07740b17b07850d3f6',
@@ -76,7 +77,7 @@ let package = Package(name: "capacitor-swift-pm", products: [
     assert (app/'capacitor.config.json').is_file()
     assert not json.loads((app/'capacitor.config.json').read_text()).get('server')
     assert not list(target.rglob('*.csv')), 'Aucun CSV ne doit être embarqué.'
-    (target/'LIRE-MOI.txt').write_text('''GYMAUDIT V1.1 — PROJET XCODE COMPLET
+    (target/'LIRE-MOI.txt').write_text(f'''GYMAUDIT V{APP_VERSION} — PROJET XCODE COMPLET
 
 1. Ouvrir GymAudit.xcodeproj sur un Mac avec Xcode 26 ou plus récent.
 2. Choisir le schéma GymAudit puis un simulateur iPhone, et cliquer sur Run (▶).
