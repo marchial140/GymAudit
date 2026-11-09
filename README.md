@@ -1,5 +1,7 @@
 # GymAudit
 
+**V1.3 — design A et bilan hebdomadaire :** [nouveautés, critères de comparaison et vérifications](V1.3.md). Comparaisons de séries réelles, semaines aux dates explicites, données et favoris conservés.
+
 **V1.2 — interface simplifiée :** [vues essentielles, favoris et détails à la demande](V1.2.md). Aucune analyse supprimée ; mêmes données, calculs et identifiant iOS.
 
 **V1.1 :** [nouveautés, règles d’interprétation et vérifications](V1.1.md). Les calculs et le stockage V1 sont conservés ; le ZIP Xcode autonome contient la nouvelle interface.
