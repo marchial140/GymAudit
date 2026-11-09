@@ -76,7 +76,7 @@ let package = Package(name: "capacitor-swift-pm", products: [
     assert (app/'capacitor.config.json').is_file()
     assert not json.loads((app/'capacitor.config.json').read_text()).get('server')
     assert not list(target.rglob('*.csv')), 'Aucun CSV ne doit être embarqué.'
-    (target/'LIRE-MOI.txt').write_text('''GYMAUDIT — PROJET XCODE COMPLET
+    (target/'LIRE-MOI.txt').write_text('''GYMAUDIT V1.1 — PROJET XCODE COMPLET
 
 1. Ouvrir GymAudit.xcodeproj sur un Mac avec Xcode 26 ou plus récent.
 2. Choisir le schéma GymAudit puis un simulateur iPhone, et cliquer sur Run (▶).
@@ -97,7 +97,7 @@ Xcode et l’exécution sur iPhone n’ont pas pu être testées ici.
 Cette archive contient une copie autonome des dépendances ; pour modifier
 l’interface, utiliser les sources du dépôt GymAudit et régénérer cette archive.
 ''')
-    (target/'DEPENDANCES.json').write_text(json.dumps({'capacitor': '8.6.0', 'plugins': versions, 'sha256_archives_officielles': CHECKSUMS}, indent=2)+'\n')
+    (target/'DEPENDANCES.json').write_text(json.dumps({'app_version': json.loads((ROOT/'package.json').read_text())['version'], 'capacitor': '8.6.0', 'plugins': versions, 'sha256_archives_officielles': CHECKSUMS}, indent=2)+'\n')
     output = ROOT/'downloads/GymAudit-iPhone-Xcode.zip'
     output.parent.mkdir(exist_ok=True)
     with zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED) as z:
@@ -105,4 +105,5 @@ l’interface, utiliser les sources du dépôt GymAudit et régénérer cette ar
             if path.is_file(): z.write(path, path.relative_to(target.parent))
     with zipfile.ZipFile(output) as z:
         assert z.testzip() is None
+    shutil.copy2(output, ROOT/'downloads/GymAudit-Xcode.zip')
     print(f'{output}: {output.stat().st_size:,} octets ; toutes les dépendances Swift sont locales.')

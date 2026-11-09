@@ -1,5 +1,7 @@
 # GymAudit
 
+**V1.1 :** [nouveautés, règles d’interprétation et vérifications](V1.1.md). Les calculs et le stockage V1 sont conservés ; le ZIP Xcode autonome contient la nouvelle interface.
+
 **Téléchargement Xcode complet, sans npm :** [GymAudit-iPhone-Xcode.zip](https://github.com/marchial140/GymAudit/raw/refs/heads/main/downloads/GymAudit-iPhone-Xcode.zip). Décompresser et ouvrir **`GymAudit/GymAudit.xcodeproj`** dans Xcode, choisir le schéma **GymAudit** et un simulateur iPhone, puis ▶. Le ZIP inclut les fichiers compilés, les plugins et les frameworks Capacitor ; la signature Apple reste à configurer pour un iPhone physique.
 
 **Version iPhone :** le projet Xcode est disponible dans `ios/App/App.xcodeproj`. Voir [le guide iPhone](IPHONE.md) pour le simulateur, la signature et l’installation sur ton appareil.
